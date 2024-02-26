@@ -71,6 +71,12 @@ services:
           max-file: "5"
           max-size: "5m"
 
+  # Watchtower automatically updates the containers
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   node-modules-store: {}
   mongodb: {}
