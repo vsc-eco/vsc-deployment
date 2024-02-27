@@ -18,6 +18,8 @@ services:
     environment:
       IPFS_HOST: http://ipfs:5001
       MONGO_HOST: mongo:27017
+    env_file:
+      - .env
     volumes:
       - node-modules-store:/home/github/app/node_modules
       - ./data/vsc-node:/root/.vsc-node
