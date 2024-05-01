@@ -9,8 +9,10 @@ services:
     #external_links:
       #- mongo
     depends_on:
-      - ipfs
-      - mongo
+      ipfs: 
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
     networks:
       - vsc-node
     ports:
@@ -47,6 +49,11 @@ services:
       options:
           max-file: "5"
           max-size: "5m"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo --quiet
+      interval: 10s
+      retries: 5
+      timeout: 5s
 
   ipfs:
     container_name: ipfs-vsc
