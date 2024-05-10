@@ -79,6 +79,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 3600 --cleanup
+    profiles:
+      - auto-update
 
 volumes:
   node-modules-store: {}
