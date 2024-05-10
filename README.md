@@ -25,7 +25,7 @@ MULTISIG_ANTI_HACK_KEY=
 
 ### Starting Up
 
-To launch the node, execute `docker compose --profile auto-update up -d` from the command line (or `docker-compose --profile auto-update up -d` depending on your docker compose version).
+To launch the node, execute `docker compose up -d` from the command line (or `docker-compose up -d` depending on your docker compose version).
 
 For real-time log observation, use `docker logs vsc-node -f`.
 
@@ -33,5 +33,5 @@ For real-time log observation, use `docker logs vsc-node -f`.
 
 The node is designed to self-update as necessary. However, on rare occasions, the deployment configuration may require manual updates not covered by automatic updates. Should such a situation arise, we will inform the community through our usual communication channels [discord](https://discord.gg/tm7YkW7A) and [twitter](https://twitter.com/vsc_eco).
 
-You can disable automatic updates by omitting the `auto-update` profile from the `docker compose` command.
-`docker compose --profile auto-update up -d` -> `docker compose up -d`
+You can disable automatic updates by setting the environment variable `AUTO_UPDATE` to _false_. However, we recommend to keep this feature enabled to ensure the node is always up-to-date. In our rapidly evolving ecosystem, it's crucial to keep the node updated for optimal network health.
+
