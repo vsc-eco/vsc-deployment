@@ -30,6 +30,8 @@ services:
       options:
           max-file: "5"
           max-size: "10m"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
 
   mongo:
     container_name: mongo_vsc
@@ -47,6 +49,8 @@ services:
       options:
           max-file: "5"
           max-size: "5m"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
 
   ipfs:
     container_name: ipfs-vsc
@@ -72,13 +76,15 @@ services:
       options:
           max-file: "5"
           max-size: "5m"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
 
   # Watchtower automatically updates the containers
   watchtower:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 3600 --cleanup
+    command: --label-enable --interval 3600 --cleanup
 
 volumes:
   node-modules-store: {}
