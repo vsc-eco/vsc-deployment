@@ -17,7 +17,7 @@ services:
       - 1337:1337
     environment:
       IPFS_HOST: http://ipfs:5001
-      MONGO_HOST: mongo:27017
+      MONGO_HOST: mongo:27017/?directConnection=true
     env_file:
       - .env
     volumes:
