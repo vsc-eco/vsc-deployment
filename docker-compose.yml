@@ -11,13 +11,16 @@ services:
     depends_on:
       - ipfs
       - mongo
-    networks:
-      - vsc-node
+    # networks:
+    #   - vsc-node
+    links:
+      - mongo
+      - ipfs
     ports:
       - 1337:1337
     environment:
       IPFS_HOST: http://ipfs:5001
-      MONGO_HOST: mongo:27017/?directConnection=true
+      MONGO_HOST: mongo:27017
     env_file:
       - .env
     volumes:
@@ -40,8 +43,10 @@ services:
     restart: always
     ports:
       - 127.0.0.1:27021:27017
-    networks:
-      - vsc-node
+    # networks:
+    #   - vsc-node
+    # links:
+    #   - vsc-node
     volumes:
       - ./data/vsc-db:/data/db
     logging:
@@ -62,8 +67,10 @@ services:
       - --enable-pubsub-experiment
       - --init-profile
       - server
-    networks:
-      - vsc-node
+    # networks:
+    #   - vsc-node
+    # links:
+    #   - vsc-node
     ports:
       - "4001:4001"
       - "127.0.0.1:5101:5001"
@@ -90,6 +97,6 @@ volumes:
   node-modules-store: {}
   mongodb: {}
 
-networks:
-  vsc-node:
-    driver: bridge
+# networks:
+#   vsc-node:
+#     driver: bridge
