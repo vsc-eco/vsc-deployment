@@ -1,13 +1,14 @@
 version: "3.8"
 
 services:
-  vsc-node: # name of the service
+  vsc-node:
+    # name of the service
     image: vaultec/vsc-node:main
     pull_policy: always
     container_name: vsc-node # what to label the container for docker ps
     restart: always # restart if failed, until we stop it ourselves
     #external_links:
-      #- mongo
+    #- mongo
     depends_on:
       - ipfs
       - mongo
@@ -53,7 +54,7 @@ services:
 
   ipfs:
     container_name: ipfs-vsc
-    image: ipfs/kubo:v0.18.1
+    image: ipfs/kubo:v0.28.0
     pull_policy: always
     restart: always
     command:
@@ -64,12 +65,13 @@ services:
     networks:
       - vsc-node
     ports:
-      - "4001:4001"
+      - "4003:4003"
       - "127.0.0.1:5101:5001"
     environment:
       IPFS_PATH: /etc/ipfs
     volumes:
       - ./data/ipfs:/etc/ipfs
+      - ./ipfs-migration.sh:/container-init.d/001-ipfs-migration.sh
     logging:
       driver: "json-file"
       options:
