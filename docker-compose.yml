@@ -1,14 +1,13 @@
 version: "3.8"
 
 services:
-  vsc-node:
-    # name of the service
+  vsc-node: # name of the service
     image: vaultec/vsc-node:main
     pull_policy: always
     container_name: vsc-node # what to label the container for docker ps
     restart: always # restart if failed, until we stop it ourselves
     #external_links:
-    #- mongo
+      #- mongo
     depends_on:
       - ipfs
       - mongo
@@ -65,7 +64,7 @@ services:
     networks:
       - vsc-node
     ports:
-      - "4003:4003"
+      - "4001:4001"
       - "127.0.0.1:5101:5001"
     environment:
       IPFS_PATH: /etc/ipfs
