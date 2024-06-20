@@ -5,3 +5,4 @@
 
 data/**
 seed-backup.json
+.vscode/settings.json

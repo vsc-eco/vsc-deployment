@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   vsc-node: # name of the service
     image: vaultec/vsc-node:main
@@ -31,6 +29,10 @@ services:
           max-size: "10m"
     labels:
       - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
   mongo:
     container_name: mongo_vsc
