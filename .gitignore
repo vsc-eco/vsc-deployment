@@ -3,5 +3,4 @@
 # Ignore .env files
 .env
 
-data/**
 seed-backup.json

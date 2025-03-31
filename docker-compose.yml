@@ -1,80 +1,58 @@
 version: "3.8"
 
 services:
-  vsc-node: # name of the service
-    image: vaultec/vsc-node:main
-    pull_policy: always
-    container_name: vsc-node # what to label the container for docker ps
-    restart: always # restart if failed, until we stop it ourselves
-    #external_links:
-      #- mongo
+  init:
+    profiles: ["init"]
+    image: vscnetwork/go-vsc-node:main
+    command: ./vsc-node --init
+    environment:
+      - MONGO_URL=mongodb://db:27017
     depends_on:
-      - ipfs
       - mongo
     networks:
-      - vsc-node
-    ports:
-      - 1337:1337
-    environment:
-      IPFS_HOST: http://ipfs:5001
-      MONGO_HOST: mongo:27017
-    env_file:
-      - .env
+      - go-vsc-node
     volumes:
-      - ./data/vsc-node:/root/.vsc-node
-      - ./seed-backup.json:/root/.vsc-seed-backup.json
-      - ./.git/refs/heads/main:/root/git_commit
+      - ./data:/home/app/app/data
+  go-vsc-node: # name of the service
+    image: vscnetwork/go-vsc-node:main
+    pull_policy: always
+    container_name: go-vsc-node # what to label the container for docker ps
+    restart: always # restart if failed, until we stop it ourselves
+    depends_on:
+      - mongo
+    networks:
+      - go-vsc-node
+    ports:
+      - 8080:8080
+      - 10720:10720
+    environment:
+      MONGO_HOST: mongo:27017
+    volumes:
+      - ./data:/home/app/app/data
     logging:
       driver: "json-file"
       options:
-          max-file: "5"
-          max-size: "10m"
+        max-file: "5"
+        max-size: "10m"
     labels:
       - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
 
   mongo:
     container_name: mongo_vsc
-    image: mongo:4.4.18
+    image: mongo:8.0.4
     pull_policy: always
     restart: always
     ports:
       - 127.0.0.1:27021:27017
     networks:
-      - vsc-node
+      - go-vsc-node
     volumes:
       - ./data/vsc-db:/data/db
     logging:
       driver: "json-file"
       options:
-          max-file: "5"
-          max-size: "5m"
-    labels:
-      - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
-
-  ipfs:
-    container_name: ipfs-vsc
-    image: ipfs/kubo:v0.18.1
-    pull_policy: always
-    restart: always
-    command:
-      - daemon
-      - --enable-pubsub-experiment
-      - --init-profile
-      - server
-    networks:
-      - vsc-node
-    ports:
-      - "4001:4001"
-      - "127.0.0.1:5101:5001"
-    environment:
-      IPFS_PATH: /etc/ipfs
-    volumes:
-      - ./data/ipfs:/etc/ipfs
-    logging:
-      driver: "json-file"
-      options:
-          max-file: "5"
-          max-size: "5m"
+        max-file: "5"
+        max-size: "5m"
     labels:
       - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
 
@@ -85,10 +63,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --label-enable --interval 3600 --cleanup
 
-volumes:
-  node-modules-store: {}
-  mongodb: {}
-
 networks:
-  vsc-node:
+  go-vsc-node:
     driver: bridge
