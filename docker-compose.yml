@@ -62,6 +62,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --label-enable --interval 3600 --cleanup
+    restart: always
 
 networks:
   go-vsc-node:
