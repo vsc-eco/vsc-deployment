@@ -2,6 +2,8 @@
 
 # Ignore .env files
 .env
+.*.env
 
 data/*
 seed-backup.json
+.vscode/settings.json
