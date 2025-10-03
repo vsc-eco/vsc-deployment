@@ -20,6 +20,7 @@ services:
     restart: always # restart if failed, until we stop it ourselves
     depends_on:
       - mongo
+      - btcd
     networks:
       - go-vsc-node
     ports:
@@ -65,12 +66,19 @@ services:
     restart: always
 
   btcd:
-    image: ruimarinho/bitcoin-core:latest
+    image: ruimarinho/bitcoin-core:23-alpine
     container_name: vsc-btcd
     command: -rpcuser='vsc-node-user' -rpcpassword='vsc-node-pass' -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
+    restart: always
     volumes:
       - ./.btc-data:/home/bitcoin/.bitcoin
-
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    networks:
+      - go-vsc-node
 networks:
   go-vsc-node:
     driver: bridge
