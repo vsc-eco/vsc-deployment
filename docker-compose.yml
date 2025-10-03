@@ -64,6 +64,13 @@ services:
     command: --label-enable --interval 3600 --cleanup
     restart: always
 
+  btcd:
+    image: ruimarinho/bitcoin-core:latest
+    container_name: vsc-btcd
+    command: -rpcuser='vsc-node-user' -rpcpassword='vsc-node-pass' -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
+    volumes:
+      - ./.btc-data:/home/bitcoin/.bitcoin
+
 networks:
   go-vsc-node:
     driver: bridge
