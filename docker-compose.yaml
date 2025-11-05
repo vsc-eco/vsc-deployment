@@ -1,0 +1,82 @@
+services:
+  init:
+    profiles: ["init"]
+    image: vscnetwork/go-vsc-node:main
+    command: ./vsc-node --init
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+    depends_on:
+      - mongo
+    networks:
+      - go-vsc-node
+    volumes:
+      - ./data:/home/app/app/data
+  go-vsc-node: # name of the service
+    image: vscnetwork/go-vsc-node:main
+    pull_policy: always
+    container_name: go-vsc-node # what to label the container for docker ps
+    restart: always # restart if failed, until we stop it ourselves
+    depends_on:
+      - mongo
+      - btcd
+    networks:
+      - go-vsc-node
+    ports:
+      - 8080:8080
+      - 10720:10720
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+    volumes:
+      - ./data:/home/app/app/data
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
+
+  mongo:
+    container_name: mongo_vsc
+    image: mongo:8.0.4
+    pull_policy: always
+    restart: always
+    ports:
+      - 127.0.0.1:27021:27017
+    networks:
+      - go-vsc-node
+    volumes:
+      - ./data/vsc-db:/data/db
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "5m"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
+
+  # Watchtower automatically updates the containers
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --label-enable --interval 3600 --cleanup
+    restart: always
+
+  btcd:
+    image: ruimarinho/bitcoin-core:23-alpine
+    container_name: vsc-btcd
+    command: -rpcuser='vsc-node-user' -rpcpassword='vsc-node-pass' -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
+    restart: always
+    volumes:
+      - ./.btc-data:/home/bitcoin/.bitcoin
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    networks:
+      - go-vsc-node
+networks:
+  go-vsc-node:
+    driver: bridge
