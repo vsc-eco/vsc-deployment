@@ -26,6 +26,7 @@ services:
     ports:
       - 8080:8080
       - 10720:10720
+      - 10720:10720/udp
     environment:
       - MONGO_URL=mongodb://mongo:27017
     volumes:
