@@ -24,7 +24,6 @@ services:
     ports:
       - 8080:8080
       - 10720:10720
-      - 10720:10720/udp
     environment:
       - MONGO_URL=mongodb://mongo:27017
     volumes:
@@ -36,10 +35,7 @@ services:
         max-size: "10m"
     labels:
       - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
+
   mongo:
     container_name: mongo_vsc
     image: mongo:8.0.4
@@ -70,7 +66,7 @@ services:
   btcd:
     image: ruimarinho/bitcoin-core:23-alpine
     container_name: vsc-btcd
-    command: -rpcuser='vsc-node-user' -rpcpassword='vsc-node-pass' -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
+    command: -rpcuser='vsc-node-user' -rpcpassword='vsc-node-pass' -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=4096 -par=8 -server=1 -listen=1
     restart: always
     volumes:
       - ./.btc-data:/home/bitcoin/.bitcoin
