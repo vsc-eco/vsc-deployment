@@ -38,7 +38,10 @@ services:
         max-size: "10m"
     labels:
       - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
-
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
   mongo:
     container_name: mongo_vsc
     image: mongo:8.0.4
