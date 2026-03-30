@@ -42,7 +42,7 @@ services:
           memory: 2048M
   mongo:
     container_name: mongo_vsc
-    image: mongo:8.0.4
+    image: mongo:8.0.17
     pull_policy: always
     restart: always
     ports:
@@ -51,6 +51,11 @@ services:
       - go-vsc-node
     volumes:
       - ./data/vsc-db:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      retries: 5
+      timeout: 5s
     logging:
       driver: "json-file"
       options:
@@ -58,6 +63,10 @@ services:
         max-size: "5m"
     labels:
       - "com.centurylinklabs.watchtower.enable=${AUTO_UPDATE:-true}"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   # Watchtower automatically updates the containers
   watchtower:
@@ -66,13 +75,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --label-enable --interval 3600 --cleanup
     environment:
-      - DOCKER_API_VERSION=1.44    
+      - DOCKER_API_VERSION=1.44
     restart: always
 
   btcd:
-    image: ruimarinho/bitcoin-core:23-alpine
+    image: bitcoin/bitcoin:29.3
     container_name: vsc-btcd
-    command: -rpcuser='vsc-node-user' -rpcpassword='vsc-node-pass' -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
+    command: -rpcuser=vsc-node-user -rpcpassword=vsc-node-pass -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
     restart: always
     volumes:
       - ./.btc-data:/home/bitcoin/.bitcoin
