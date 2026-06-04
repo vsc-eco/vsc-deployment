@@ -22,7 +22,12 @@ services:
     networks:
       - go-vsc-node
     ports:
-      - 8080:8080
+      # review7 VD-M3: bind the GraphQL API to loopback only. Publishing it on
+      # 0.0.0.0 exposed the node's GQL (state/query surface) to the public
+      # internet; front it with an authenticated reverse proxy if external
+      # access is needed. The p2p ports below stay published — they must be
+      # reachable by other validators.
+      - 127.0.0.1:8080:8080
       - 10720:10720
       - 10720:10720/udp
     environment:
