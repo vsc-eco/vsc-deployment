@@ -4,7 +4,8 @@ services:
     image: vscnetwork/go-vsc-node:main
     command: ./vsc-node --init
     environment:
-      - MONGO_URL=mongodb://mongo:27017
+      # VD-H1: authenticated MongoDB connection (see mongo service + .env.example).
+      - MONGO_URL=mongodb://${MONGO_USER:-vsc_node}:${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}@mongo:27017/?authSource=admin
     depends_on:
       - mongo
     networks:
@@ -26,7 +27,8 @@ services:
       - 10720:10720
       - 10720:10720/udp
     environment:
-      - MONGO_URL=mongodb://mongo:27017
+      # VD-H1: authenticated MongoDB connection (see mongo service + .env.example).
+      - MONGO_URL=mongodb://${MONGO_USER:-vsc_node}:${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}@mongo:27017/?authSource=admin
     volumes:
       - ./data:/home/app/app/data
     logging:
@@ -45,6 +47,14 @@ services:
     image: mongo:8.0.17
     pull_policy: always
     restart: always
+    # VD-H1: enable authentication. Setting these on the official image both
+    # creates the root user (on first init of an EMPTY data dir) and turns on
+    # --auth, so the instance is no longer open to anyone who can reach it.
+    # NOTE: these only initialise a FRESH ./data/vsc-db; an existing un-authed
+    # volume must have the user created manually (see README) before auth works.
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-vsc_node}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
     ports:
       - 127.0.0.1:27021:27017
     networks:

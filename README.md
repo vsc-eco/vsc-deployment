@@ -9,12 +9,25 @@ This repository hosts the Docker Compose file necessary for deploying the VSC no
 2. `git clone https://github.com/vsc-eco/vsc-deployment`
    Clone this repository as a normal user (not root/admin) to a desired location. It's crucial to ensure the Docker user has write permissions in the directory where you plan to initiate the Docker Compose file.
 
-3. `docker compose run init`
+3. `cp .env.example .env` and set a strong, unique `MONGO_PASSWORD`.
+   MongoDB now requires authentication (VD-H1): the database stores all chain
+   state, and an unauthenticated instance is readable/writable by any other
+   process or container on the host. Compose refuses to start until
+   `MONGO_PASSWORD` is set.
+
+   > **Upgrading an existing node** whose `./data/vsc-db` was created before
+   > authentication was enabled: the `MONGO_INITDB_ROOT_*` variables only create
+   > the user on a *fresh* data directory, so create it once manually —
+   > `docker compose up -d mongo`, then
+   > `docker exec -it mongo_vsc mongosh admin --eval 'db.createUser({user:process.env.MONGO_USER,pwd:process.env.MONGO_PASSWORD,roles:[{role:"root",db:"admin"}]})'`
+   > — and restart the stack. Fresh installs need no manual step.
+
+4. `docker compose run init`
    Initialize the configuration files
 
-4. Edit the config file located at `./data/config/identityConfig.json` and be sure to add in your Hive username and active key
+5. Edit the config file located at `./data/config/identityConfig.json` and be sure to add in your Hive username and active key
 
-5. `docker compose up -d`
+6. `docker compose up -d`
    Start the Docker containers. This will add a GraphQL server on port 8080, a MongoDB instance on port 27021, and a libp2p connection on port 10720.
 
 ### Starting Up
