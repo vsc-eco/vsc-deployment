@@ -4,9 +4,13 @@ services:
     image: vscnetwork/go-vsc-node:main
     command: ./vsc-node --init
     environment:
-      - MONGO_URL=mongodb://mongo:27017
+      # VD-H1: authenticated MongoDB connection (see mongo service + .env.example).
+      - MONGO_URL=mongodb://${MONGO_USER:-vsc_node}:${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}@mongo:27017/?authSource=admin
+    # Gate init on mongo being healthy too — on a fresh install this avoids
+    # racing mongod's auth bootstrap (the root user is created during init).
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     networks:
       - go-vsc-node
     volumes:
@@ -36,7 +40,8 @@ services:
       - 10720:10720
       - 10720:10720/udp
     environment:
-      - MONGO_URL=mongodb://mongo:27017
+      # VD-H1: authenticated MongoDB connection (see mongo service + .env.example).
+      - MONGO_URL=mongodb://${MONGO_USER:-vsc_node}:${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}@mongo:27017/?authSource=admin
     volumes:
       - ./data:/home/app/app/data
     logging:
@@ -55,6 +60,14 @@ services:
     image: mongo:8.0.17
     pull_policy: always
     restart: always
+    # VD-H1: enable authentication. On the official image these both create the
+    # root user (on first init of an EMPTY data dir) and enable --auth, so the
+    # DB is no longer open to anything that can reach it.
+    # NOTE: these only initialise a FRESH ./data/vsc-db; an existing un-authed
+    # volume needs the user created once manually (see README "Upgrading").
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-vsc_node}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
     ports:
       - 127.0.0.1:27021:27017
     networks:
