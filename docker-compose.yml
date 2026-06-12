@@ -16,9 +16,14 @@ services:
     pull_policy: always
     container_name: go-vsc-node # what to label the container for docker ps
     restart: always # restart if failed, until we stop it ourselves
+    # VD-L-BTCDHEALTH: gate startup on mongo AND btcd being healthy (both now
+    # have healthchecks), so the node never boots against a not-ready DB or a
+    # btcd that is still bringing up RPC.
     depends_on:
-      - mongo
-      - btcd
+      mongo:
+        condition: service_healthy
+      btcd:
+        condition: service_healthy
     networks:
       - go-vsc-node
     ports:
@@ -61,6 +66,11 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
+      # AF-2: now that go-vsc-node and init wait on `mongo: service_healthy`,
+      # give mongod room for cold-boot journal replay before the gate trips.
+      # Without this, a replay longer than interval*retries (~50s) would brick
+      # cold boot.
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -88,6 +98,24 @@ services:
     container_name: vsc-btcd
     command: -rpcuser=vsc-node-user -rpcpassword=vsc-node-pass -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
     restart: always
+    # NOTE: the -rpcuser / -rpcpassword in the healthcheck below MUST stay in
+    # sync with the -rpcuser / -rpcpassword in `command:` above (and in
+    # multi-core-docker-compose.yml). If the BTC RPC credentials are rotated
+    # (see CRIT-6 remediation), update ALL places in the same commit or the
+    # healthcheck 401s and go-vsc-node never starts (it waits on
+    # btcd: condition: service_healthy). getblockchaininfo responds during IBD,
+    # so the gate passes on RPC-up — no deadlock while the chain syncs.
+    healthcheck:
+      test:
+        - "CMD"
+        - "bitcoin-cli"
+        - "-rpcuser=vsc-node-user"
+        - "-rpcpassword=vsc-node-pass"
+        - "getblockchaininfo"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./.btc-data:/home/bitcoin/.bitcoin
     logging:
