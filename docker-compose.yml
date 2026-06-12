@@ -17,8 +17,10 @@ services:
     container_name: go-vsc-node # what to label the container for docker ps
     restart: always # restart if failed, until we stop it ourselves
     depends_on:
-      - mongo
-      - btcd
+      mongo:
+        condition: service_healthy
+      btcd:
+        condition: service_healthy
     networks:
       - go-vsc-node
     ports:
@@ -61,6 +63,11 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
+      # AF-2: give mongod time for journal replay on cold boot before the
+      # service_healthy gate trips. Without this, go-vsc-node (which now waits
+      # on `mongo: condition: service_healthy`, see C9) bricks cold-boot if
+      # journal replay takes longer than interval*retries (~50s).
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
@@ -88,6 +95,22 @@ services:
     container_name: vsc-btcd
     command: -rpcuser=vsc-node-user -rpcpassword=vsc-node-pass -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=2048 -server=1 -listen=1
     restart: always
+    # NOTE: the -rpcuser / -rpcpassword in the healthcheck below MUST stay in sync
+    # with the -rpcuser / -rpcpassword in the `command:` above. If the BTC RPC
+    # credentials are rotated (see CRIT-6 remediation), update BOTH places in the
+    # same commit or the healthcheck will fail with HTTP 401 and go-vsc-node will
+    # never start (depends_on: btcd: condition: service_healthy).
+    healthcheck:
+      test:
+        - "CMD"
+        - "bitcoin-cli"
+        - "-rpcuser=vsc-node-user"
+        - "-rpcpassword=vsc-node-pass"
+        - "getblockchaininfo"
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./.btc-data:/home/bitcoin/.bitcoin
     logging:
