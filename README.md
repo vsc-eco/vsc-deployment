@@ -23,6 +23,21 @@ To launch the node, execute `docker compose up -d` from the command line (or `do
 
 For real-time log observation, use `docker logs go-vsc-node -f`.
 
+### Faster initial sync (multi-core machines)
+
+The first run has to sync the Bitcoin block chain. btcd's default cache is
+small, and inside a container its CPU auto-detection often under-counts the
+cores it can use. On a multi-core host you can speed up the initial sync with
+the `multi-core-docker-compose.yml` override, which raises `-dbcache` and pins
+btcd's script-verification threads (`-par`):
+
+```
+docker compose -f docker-compose.yml -f multi-core-docker-compose.yml up -d
+```
+
+It only overrides btcd's `command:`; everything else is inherited from the
+base file. Tune `-par` / `-dbcache` to your machine in that file.
+
 ### Maintenance
 
 The node is designed to self-update as necessary. However, on rare occasions, the deployment configuration may require manual updates not covered by automatic updates. Should such a situation arise, we will inform the community through our usual communication channels [discord](http://discord.gg/yvGXZsQTU6) and [twitter](https://twitter.com/vsc_eco).
