@@ -28,3 +28,14 @@ For real-time log observation, use `docker logs go-vsc-node -f`.
 The node is designed to self-update as necessary. However, on rare occasions, the deployment configuration may require manual updates not covered by automatic updates. Should such a situation arise, we will inform the community through our usual communication channels [discord](http://discord.gg/yvGXZsQTU6) and [twitter](https://twitter.com/vsc_eco).
 
 You can disable automatic updates by setting the environment variable `AUTO_UPDATE` to _false_. However, we recommend to keep this feature enabled to ensure the node is always up-to-date. In our rapidly evolving ecosystem, it's crucial to keep the node updated for optimal network health.
+
+#### Image moved to GitHub Container Registry
+
+The node image is now published as `ghcr.io/vsc-eco/go-vsc-node:main`, built by GitHub Actions in [vsc-eco/go-vsc-node](https://github.com/vsc-eco/go-vsc-node). The old `vscnetwork/go-vsc-node` image on Docker Hub is no longer updated, and automatic updates cannot switch you over by themselves. If your node was set up before this change, run once:
+
+```sh
+git pull
+docker compose up -d
+```
+
+Then check that `docker ps` shows the `ghcr.io/vsc-eco/go-vsc-node:main` image.
