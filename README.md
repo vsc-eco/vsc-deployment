@@ -39,3 +39,5 @@ docker compose up -d
 ```
 
 Then check that `docker ps` shows the `ghcr.io/vsc-eco/go-vsc-node:main` image.
+
+Testnet nodes run the `develop` image instead: in `docker-compose.yml`, comment out the `:main` image line and uncomment the `:develop` one (in both the `init` and `go-vsc-node` services).
