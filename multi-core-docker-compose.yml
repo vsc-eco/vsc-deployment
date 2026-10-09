@@ -1,0 +1,27 @@
+# Multi-core btcd override (from PR #12, brianoflondon).
+#
+# Speeds up the initial Bitcoin block-chain sync on machines with several
+# cores by raising btcd's UTXO cache (-dbcache) and pinning its script-
+# verification thread count (-par). brianoflondon measured -par=8 taking btcd
+# from ~1 core / 167 blk/s to ~5 cores / 199 blk/s on his host.
+#
+# This is an OVERRIDE, not a standalone stack — it only changes btcd's
+# `command:`. Everything else (Mongo auth, healthchecks, service_healthy
+# gates, the VD-M3 loopback bind, image pins) is inherited from
+# docker-compose.yml, so the two files can never drift out of sync.
+#
+# The -rpcuser / -rpcpassword here MUST match docker-compose.yml's btcd
+# command, otherwise the btcd healthcheck (which authenticates with those
+# creds) 401s and go-vsc-node never starts. They are identical to the base
+# on purpose — only -dbcache and -par differ.
+#
+# Usage (note BOTH -f flags, base first):
+#   docker compose -f docker-compose.yml -f multi-core-docker-compose.yml up -d
+#
+# Tune -par / -dbcache to your machine. -par = script-verification threads
+# (0 = auto up to 15, negative = leave that many cores free, default 0);
+# pinning it helps because in-container CPU auto-detection often under-counts
+# the available cores. -dbcache is the UTXO cache in MiB (bitcoind default 450).
+services:
+  btcd:
+    command: -rpcuser=vsc-node-user -rpcpassword=vsc-node-pass -rpcallowip=0.0.0.0/0 -rpcbind=0.0.0.0 -prune=550 -dbcache=4096 -par=8 -server=1 -listen=1
